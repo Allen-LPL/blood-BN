@@ -1,8 +1,11 @@
 ######################################################################
 # Build Tools
 
+.history
+.vscode
 .gradle
 /build/
+sql
 !gradle/wrapper/gradle-wrapper.jar
 
 target/
