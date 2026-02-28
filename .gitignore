@@ -1,6 +1,6 @@
 ######################################################################
 # Build Tools
-
+.fastRequest/
 .history
 .vscode
 .gradle
