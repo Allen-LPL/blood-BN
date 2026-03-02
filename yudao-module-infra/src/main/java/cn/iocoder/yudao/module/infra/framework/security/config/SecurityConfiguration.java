@@ -17,7 +17,8 @@ public class SecurityConfiguration {
         return new AuthorizeRequestsCustomizer() {
 
             @Override
-            public void customize(AuthorizeHttpRequestsConfigurer<HttpSecurity>.AuthorizationManagerRequestMatcherRegistry registry) {
+            public void customize(
+                    AuthorizeHttpRequestsConfigurer<HttpSecurity>.AuthorizationManagerRequestMatcherRegistry registry) {
                 // Swagger 接口文档
                 registry.requestMatchers("/v3/api-docs/**").permitAll()
                         .requestMatchers("/webjars/**").permitAll()
@@ -29,7 +30,9 @@ public class SecurityConfiguration {
                 // Druid 监控
                 registry.requestMatchers("/druid/**").permitAll();
                 // 文件读取
-                registry.requestMatchers(buildAdminApi("/infra/file/*/get/**")).permitAll();
+                registry.requestMatchers(buildAdminApi("/infra/file/*/get/**"), "/infra/file/*/get/**").permitAll();
+                // 开放的接口
+                registry.requestMatchers(buildAdminApi("/infra/blood-statistics/**")).permitAll();
             }
 
         };

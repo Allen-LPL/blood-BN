@@ -270,8 +270,9 @@ yudao:
       - ${spring.boot.admin.context-path}/** # 不处理 Spring Boot Admin 的请求
       - ${management.endpoints.web.base-path}/** # 不处理 Actuator 的请求
   security:
-    permit-all_urls:
+    permit-all-urls:
       - /admin-api/mp/open/** # 微信公众号开放平台，微信回调接口，不需要登录
+      - /admin-api/infra/blood-statistics/** # 采供血统计，无需登录
   api-encrypt:
     enable: true # 是否开启 API 加密
     algorithm: AES # 加密算法，支持 AES、RSA 等
