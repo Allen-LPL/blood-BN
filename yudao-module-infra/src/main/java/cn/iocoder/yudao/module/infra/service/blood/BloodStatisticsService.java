@@ -35,6 +35,12 @@ public interface BloodStatisticsService {
             List<String> trendTypes, List<String> orgModes);
 
     /**
+     * 献血类型排行（献血方舱、献血屋、献血车）
+     */
+    DonationTypeRankingRespVO getDonationTypeRanking(LocalDateTime startTime, LocalDateTime endTime,
+            List<String> bloodTypes);
+
+    /**
      * 献血点采血排名（关联 blood_collection_site.site_name_system 与 blood_collection_fact.collection_site）
      */
     CollectionSiteRankingRespVO getCollectionSiteRanking(LocalDateTime startTime, LocalDateTime endTime);

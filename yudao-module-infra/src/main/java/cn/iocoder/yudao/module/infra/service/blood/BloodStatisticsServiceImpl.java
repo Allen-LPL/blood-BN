@@ -159,7 +159,17 @@ public class BloodStatisticsServiceImpl implements BloodStatisticsService {
             item.setCount(areaCount.get(entry.getKey()));
             items.add(item);
         }
-        items.sort((a, b) -> b.getTotalUnit().compareTo(a.getTotalUnit()));
+        items.sort((a, b) -> {
+            int unitCompare = b.getTotalUnit().compareTo(a.getTotalUnit());
+            if (unitCompare != 0) {
+                return unitCompare;
+            }
+            int countCompare = Long.compare(b.getCount(), a.getCount());
+            if (countCompare != 0) {
+                return countCompare;
+            }
+            return a.getAreaType().compareTo(b.getAreaType());
+        });
 
         DistrictCollectionRespVO resp = new DistrictCollectionRespVO();
         resp.setItems(items);
@@ -182,6 +192,81 @@ public class BloodStatisticsServiceImpl implements BloodStatisticsService {
         CenterRankingRespVO resp = new CenterRankingRespVO();
         resp.setTrendRanking(trendRanking);
         resp.setOrgModeRanking(orgModeRanking);
+        return resp;
+    }
+
+    @Override
+    public DonationTypeRankingRespVO getDonationTypeRanking(LocalDateTime startTime, LocalDateTime endTime,
+            List<String> bloodTypes) {
+        LocalDateTime[] range = normalizeTimeRange(startTime, endTime);
+        List<String> bloodTypeConditions = buildBloodTypeConditions(bloodTypes);
+
+        QueryWrapperX<BloodCollectionFactDO> query = new QueryWrapperX<>();
+        query.select(
+                "collection_site AS collectionSite",
+                "SUM(base_unit_value) AS totalUnit",
+                "COUNT(*) AS cnt");
+        query.between("blood_collection_time", range[0], range[1]);
+        query.isNotNull("collection_site");
+        if (!bloodTypeConditions.isEmpty()) {
+            query.and(w -> {
+                for (int i = 0; i < bloodTypeConditions.size(); i++) {
+                    if (i == 0) {
+                        w.apply(bloodTypeConditions.get(i));
+                    } else {
+                        w.or().apply(bloodTypeConditions.get(i));
+                    }
+                }
+            });
+        }
+        query.groupBy("collection_site");
+
+        List<Map<String, Object>> rows = collectionMapper.selectMaps(query);
+
+        Map<String, BigDecimal> totalUnitMap = new LinkedHashMap<>();
+        Map<String, Long> countMap = new LinkedHashMap<>();
+        totalUnitMap.put("献血方舱", BigDecimal.ZERO);
+        totalUnitMap.put("献血屋", BigDecimal.ZERO);
+        totalUnitMap.put("献血车", BigDecimal.ZERO);
+        countMap.put("献血方舱", 0L);
+        countMap.put("献血屋", 0L);
+        countMap.put("献血车", 0L);
+
+        for (Map<String, Object> row : rows) {
+            String siteType = classifyDonationSiteType((String) row.get("collectionSite"));
+            if (siteType == null) {
+                continue;
+            }
+            totalUnitMap.put(siteType, totalUnitMap.get(siteType).add(toBigDecimal(row.get("totalUnit"))));
+            countMap.put(siteType, countMap.get(siteType) + toLong(row.get("cnt")));
+        }
+
+        List<DonationTypeRankingRespVO.Item> items = new ArrayList<>();
+        for (Map.Entry<String, BigDecimal> entry : totalUnitMap.entrySet()) {
+            DonationTypeRankingRespVO.Item item = new DonationTypeRankingRespVO.Item();
+            item.setTypeName(entry.getKey());
+            item.setTotalUnit(entry.getValue());
+            item.setCount(countMap.get(entry.getKey()));
+            items.add(item);
+        }
+        items.sort((a, b) -> {
+            int unitCompare = b.getTotalUnit().compareTo(a.getTotalUnit());
+            if (unitCompare != 0) {
+                return unitCompare;
+            }
+            int countCompare = Long.compare(b.getCount(), a.getCount());
+            if (countCompare != 0) {
+                return countCompare;
+            }
+            return a.getTypeName().compareTo(b.getTypeName());
+        });
+        int rank = 1;
+        for (DonationTypeRankingRespVO.Item item : items) {
+            item.setRank(rank++);
+        }
+
+        DonationTypeRankingRespVO resp = new DonationTypeRankingRespVO();
+        resp.setItems(items);
         return resp;
     }
 
@@ -601,7 +686,7 @@ public class BloodStatisticsServiceImpl implements BloodStatisticsService {
         if (bloodTypes == null || bloodTypes.isEmpty()) {
             return Collections.emptyList();
         }
-        List<String> conditions = new ArrayList<>();
+        Set<String> conditions = new LinkedHashSet<>();
         for (String bt : bloodTypes) {
             if (TREND_TYPE_WHOLE_BLOOD.equals(bt)) {
                 conditions.add("blood_volume IS NOT NULL AND " + WHOLE_BLOOD_CONDITION);
@@ -609,7 +694,26 @@ public class BloodStatisticsServiceImpl implements BloodStatisticsService {
                 conditions.add("blood_volume IS NOT NULL AND " + PLATELET_CONDITION);
             }
         }
-        return conditions;
+        if (conditions.isEmpty()) {
+            return Collections.singletonList("1 = 0");
+        }
+        return new ArrayList<>(conditions);
+    }
+
+    private String classifyDonationSiteType(String site) {
+        if (site == null || site.isEmpty()) {
+            return null;
+        }
+        if (site.contains("方舱") || site.contains("方仓")) {
+            return "献血方舱";
+        }
+        if (site.contains("献血屋")) {
+            return "献血屋";
+        }
+        if (site.contains("献血车")) {
+            return "献血车";
+        }
+        return null;
     }
 
     private List<DonorDistributionRespVO.AgeDistributionItem> queryAgeDistribution(LocalDateTime[] range,

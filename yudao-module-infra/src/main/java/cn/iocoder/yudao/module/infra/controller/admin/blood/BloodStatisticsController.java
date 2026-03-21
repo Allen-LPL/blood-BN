@@ -67,6 +67,15 @@ public class BloodStatisticsController {
                 reqVO.getStartTime(), reqVO.getEndTime(), bloodVolumeTypes, orgVolumeTypes));
     }
 
+    @GetMapping("/donation-type-ranking")
+    @Operation(summary = "献血类型排行（献血方舱、献血屋、献血车）")
+    public CommonResult<DonationTypeRankingRespVO> getDonationTypeRanking(
+            @Valid BloodStatisticsReqVO reqVO,
+            @RequestParam(required = false) List<String> bloodTypes) {
+        return success(bloodStatisticsService.getDonationTypeRanking(
+                reqVO.getStartTime(), reqVO.getEndTime(), bloodTypes));
+    }
+
     @GetMapping("/collection-site-ranking")
     @Operation(summary = "献血点采血排名（关联 blood_collection_site.site_name_system 与 blood_collection_fact.collection_site）")
     public CommonResult<CollectionSiteRankingRespVO> getCollectionSiteRanking(@Valid BloodStatisticsReqVO reqVO) {
