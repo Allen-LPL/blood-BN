@@ -572,3 +572,154 @@ DO 约束：同采血事实，不继承 `BaseDO/TenantBaseDO`，加 `@TenantIgno
 | BloodSupplyFactService | `service/blood/` | 服务接口 |
 | BloodSupplyFactServiceImpl | `service/blood/` | 服务实现 |
 | BloodSupplyFactController | `controller/admin/blood/` | REST 控制器 |
+
+---
+
+# Blood Collection Site & Main Site - Admin APIs
+
+## 概述
+
+采血点（`blood_collection_site`）和血液中心（`blood_collection_main_site`）表接口设计。
+
+- Controller → Service → Mapper（`BaseMapperX` + `LambdaQueryWrapperX`）
+- 方案 B（`@TenantIgnore`）：DO 不继承 `BaseDO/TenantBaseDO`
+
+---
+
+## blood_collection_site 表结构与 Model（DO）
+
+表：`blood_collection_site`
+
+字段映射（Java 类型）：
+
+- `id` → `Long`
+- `district` → `String` （行政区）
+- `collection_site_name` → `String` （采血点名称/门店）
+- `site_name_filing` → `String` （备案名称）
+- `site_name_system` → `String` （系统名称）
+- `site_setup_area_type` → `String` （采血点设置区域类型）
+- `operating_org` → `String` （运行机构）
+- `site_type` → `Integer` （类型 1:固定, 2:流动）
+- `state` → `Integer` （运行状态 0:关闭，1:正常运行）
+- `first_operation_date` → `String` （首次运行日期）
+- `daily_open_time` → `String` （每日开放时段）
+- `specific_address` → `String` （具体地址）
+- `coordinate_lng` → `java.math.BigDecimal` （经度）
+- `coordinate_lat` → `java.math.BigDecimal` （纬度）
+- `load_batch_id` → `String` （导入批次ID）
+- `ingested_at` → `java.time.LocalDateTime` （导入时间）
+
+DO 约束：同采血事实，不继承 `BaseDO/TenantBaseDO`，加 `@TenantIgnore`。
+
+---
+
+## blood_collection_main_site 表结构与 Model（DO）
+
+表：`blood_collection_main_site`
+
+字段映射（Java 类型）：
+
+- `id` → `Long`
+- `district` → `String` （行政区）
+- `collection_operating_org` → `String` （采血机构名称）
+- `is_independent_legal_entity` → `Integer` （是否独立法人 1:是, 0:否）
+- `social_credit_code` → `String` （社会信用代码）
+- `construction_time` → `String` （建设时间）
+- `specific_address` → `String` （具体地址）
+- `street` → `String` （所属街道）
+- `supporting_unit` → `String` （依托单位）
+- `coordinate_lng` → `java.math.BigDecimal` （经度）
+- `coordinate_lat` → `java.math.BigDecimal` （纬度）
+- `site_count` → `Integer` （采血点数量）
+- `operating_site_count` → `Integer` （运行采血点数量）
+- `person_in_charge` → `String` （负责人）
+- `contact_phone` → `String` （联系电话）
+- `type` → `Integer` （类型 1:一级, 2:二级）
+- `state` → `Integer` （运行状态 0:关闭，1:正常运行）
+- `load_batch_id` → `String` （导入批次ID）
+- `ingested_at` → `java.time.LocalDateTime` （导入时间）
+
+DO 约束：同采血事实，不继承 `BaseDO/TenantBaseDO`，加 `@TenantIgnore`。
+
+---
+
+## 采血点坐标接口
+
+### GET /admin-api/infra/blood-collection-site/coordinates
+
+获取所有采血点的坐标数据（用于地图展示）。
+
+权限：`infra:blood-collection-site:query`
+
+返回：`CommonResult<BloodCollectionSiteCoordinateRespVO>`
+
+响应结构：
+
+```java
+@Data
+public class BloodCollectionSiteCoordinateRespVO {
+    private List<Item> items;
+
+    @Data
+    public static class Item {
+        private String collectionSiteName;  // 采血点名称
+        private String district;            // 所属区
+        private String operatingOrg;        // 运行机构
+        private BigDecimal lng;              // 经度
+        private BigDecimal lat;              // 纬度
+        private Integer value;               // 值
+        private String type;                 // 类型
+    }
+}
+```
+
+---
+
+## 血液中心统计接口
+
+### GET /admin-api/infra/blood/statistics/main-site-stats
+
+获取血液中心列表及其采血量/供血量统计。
+
+权限：`infra:blood-statistics:query`
+
+返回：`CommonResult<MainSiteStatsRespVO>`
+
+响应结构：
+
+```java
+@Data
+public class MainSiteStatsRespVO {
+    private List<Item> items;
+
+    @Data
+    public static class Item {
+        private Long id;                     // 主键
+        private String name;                 // 运行机构名称
+        private String level;                // 类型（一级/二级）
+        private Integer state;               // 运行状态
+        private BigDecimal lng;              // 经度
+        private BigDecimal lat;              // 纬度
+        private BigDecimal supplyTotalUnit; // 供血量统计
+        private BigDecimal collectionTotalUnit; // 采血量统计
+        private BigDecimal value;            // 值
+    }
+}
+```
+
+---
+
+## 文件清单
+
+| 文件 | 路径 | 说明 |
+|------|------|------|
+| BloodCollectionSiteDO | `dal/dataobject/blood/` | 采血点数据对象 |
+| BloodCollectionMainSiteDO | `dal/dataobject/blood/` | 血液中心数据对象 |
+| BloodCollectionSiteCoordinateRespVO | `controller/admin/blood/vo/` | 采血点坐标响应 VO |
+| MainSiteStatsRespVO | `controller/admin/blood/vo/` | 血液中心统计响应 VO |
+| BloodCollectionSiteMapper | `dal/mysql/blood/` | 采血点 Mapper |
+| BloodCollectionMainSiteMapper | `dal/mysql/blood/` | 血液中心 Mapper |
+| BloodCollectionSiteService | `service/blood/` | 采血点服务接口 |
+| BloodCollectionSiteServiceImpl | `service/blood/` | 采血点服务实现 |
+| BloodStatisticsServiceImpl | `service/blood/` | 统计服务实现（含血液中心统计）|
+| BloodCollectionSiteController | `controller/admin/blood/` | 采血点 REST 控制器 |

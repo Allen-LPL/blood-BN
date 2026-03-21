@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 @Schema(description = "管理后台 - 献血者分布统计 Response VO")
 @Data
@@ -35,5 +36,22 @@ public class DonorDistributionRespVO {
 
     @Schema(description = "女性占比")
     private BigDecimal femaleRatio;
+
+    @Schema(description = "年龄分布列表")
+    private List<AgeDistributionItem> ageDistribution;
+
+    @Schema(description = "年龄分布数据项")
+    @Data
+    public static class AgeDistributionItem {
+
+        @Schema(description = "年龄段标签", example = "18岁-25岁")
+        private String ageGroup;
+
+        @Schema(description = "人次")
+        private Long count;
+
+        @Schema(description = "占比")
+        private BigDecimal ratio;
+    }
 
 }

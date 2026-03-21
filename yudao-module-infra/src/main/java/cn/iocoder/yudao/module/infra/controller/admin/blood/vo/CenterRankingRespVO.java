@@ -10,8 +10,11 @@ import java.util.List;
 @Data
 public class CenterRankingRespVO {
 
-    @Schema(description = "血液中心排名列表")
-    private List<Item> items;
+    @Schema(description = "按采血类型聚合的机构排名列表")
+    private List<Item> trendRanking;
+
+    @Schema(description = "按组织模式聚合的机构排名列表")
+    private List<Item> orgModeRanking;
 
     @Schema(description = "血液中心排名数据项")
     @Data

@@ -21,19 +21,19 @@ public class MainSiteStatsRespVO {
         private Long id;
 
         @Schema(description = "运行机构名称")
-        private String collectionOperatingOrg;
+        private String name;
 
         @Schema(description = "类型 1:一级、2:二级")
-        private Integer type;
+        private String level;
 
         @Schema(description = "运行状态 0:关闭，1:正常运行")
         private Integer state;
 
         @Schema(description = "经度")
-        private String coordinateLng;
+        private BigDecimal lng;
 
         @Schema(description = "纬度")
-        private String coordinateLat;
+        private BigDecimal lat;
 
         @Schema(description = "供血量统计（基础单位U）- 来自 blood_supply_fact 的 issuing_org 聚合")
         private BigDecimal supplyTotalUnit;
@@ -41,6 +41,8 @@ public class MainSiteStatsRespVO {
         @Schema(description = "采血量统计（基础单位U）- 来自 blood_collection_fact 的 collection_department 聚合")
         private BigDecimal collectionTotalUnit;
 
+        @Schema(description = "值")
+        private BigDecimal value;
     }
 
 }

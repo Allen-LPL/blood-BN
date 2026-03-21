@@ -3,6 +3,7 @@ package cn.iocoder.yudao.module.infra.service.blood;
 import cn.iocoder.yudao.module.infra.controller.admin.blood.vo.*;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 public interface BloodStatisticsService {
 
@@ -14,10 +15,11 @@ public interface BloodStatisticsService {
     /**
      * 全血采血量趋势（按日/周/月/年）
      */
-    CollectionTrendRespVO getWholeBloodTrend(LocalDateTime startTime, LocalDateTime endTime, String period);
+    CollectionTrendRespVO getWholeBloodTrend(LocalDateTime startTime, LocalDateTime endTime, String period,
+            List<String> trendTypes);
 
     /**
-     * 单采血小板采血量趋势（按日/周/月/年）
+     * 采血量情况（按日/周/月/年）
      */
     CollectionTrendRespVO getPlateletTrend(LocalDateTime startTime, LocalDateTime endTime, String period);
 
@@ -27,9 +29,15 @@ public interface BloodStatisticsService {
     DistrictCollectionRespVO getDistrictCollection(LocalDateTime startTime, LocalDateTime endTime);
 
     /**
-     * 各血液中心采血量排名
+     * 采血机构排行（支持采血类型和组织模式多选聚合）
      */
-    CenterRankingRespVO getCenterRanking(LocalDateTime startTime, LocalDateTime endTime);
+    CenterRankingRespVO getCenterRanking(LocalDateTime startTime, LocalDateTime endTime,
+            List<String> trendTypes, List<String> orgModes);
+
+    /**
+     * 献血点采血排名（关联 blood_collection_site.site_name_system 与 blood_collection_fact.collection_site）
+     */
+    CollectionSiteRankingRespVO getCollectionSiteRanking(LocalDateTime startTime, LocalDateTime endTime);
 
     /**
      * 每季度采血量统计（全血、单采血小板、采血人次）
@@ -47,8 +55,9 @@ public interface BloodStatisticsService {
     MainSiteStatsRespVO getMainSiteStats(LocalDateTime startTime, LocalDateTime endTime);
 
     /**
-     * 采血表血型占比统计（按 precheck_blood_type 字段）
+     * 血型分布统计（A/B/O/AB，支持按血液类型筛选：全血采血量、血小板单采量）
      */
-    BloodTypeDistributionRespVO getBloodTypeDistribution(LocalDateTime startTime, LocalDateTime endTime);
+    BloodTypeDistributionRespVO getBloodTypeDistribution(LocalDateTime startTime, LocalDateTime endTime,
+            List<String> bloodTypes);
 
 }

@@ -6,19 +6,19 @@ import lombok.Data;
 import java.math.BigDecimal;
 import java.util.List;
 
-@Schema(description = "管理后台 - 北京各区采血量统计 Response VO")
+@Schema(description = "管理后台 - 献血区域类型采血量统计 Response VO")
 @Data
 public class DistrictCollectionRespVO {
 
-    @Schema(description = "各区采血量列表")
+    @Schema(description = "各区域类型采血量列表")
     private List<Item> items;
 
-    @Schema(description = "区域采血量数据项")
+    @Schema(description = "区域类型采血量数据项")
     @Data
     public static class Item {
 
-        @Schema(description = "区名称", example = "朝阳区")
-        private String district;
+        @Schema(description = "区域类型", example = "医疗服务区")
+        private String areaType;
 
         @Schema(description = "采血量（基础单位U）")
         private BigDecimal totalUnit;

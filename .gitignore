@@ -4,6 +4,7 @@
 .history
 .vscode
 .gradle
+.venv
 /build/
 sql
 !gradle/wrapper/gradle-wrapper.jar
