@@ -20,7 +20,7 @@ import static cn.iocoder.yudao.framework.common.pojo.CommonResult.success;
 
 import java.util.List;
 
-@Tag(name = "管理后台 - 采供血统计")
+@Tag(name = "管理后台 - 采血统计")
 @RestController
 @RequestMapping("/infra/blood-statistics")
 @Validated

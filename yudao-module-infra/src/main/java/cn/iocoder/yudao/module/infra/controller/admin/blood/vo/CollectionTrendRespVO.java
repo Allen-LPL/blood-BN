@@ -6,7 +6,7 @@ import lombok.Data;
 import java.math.BigDecimal;
 import java.util.List;
 
-@Schema(description = "管理后台 - 采血量趋势统计 Response VO")
+@Schema(description = "管理后台 - 采血量情况 Response VO")
 @Data
 public class CollectionTrendRespVO {
 
