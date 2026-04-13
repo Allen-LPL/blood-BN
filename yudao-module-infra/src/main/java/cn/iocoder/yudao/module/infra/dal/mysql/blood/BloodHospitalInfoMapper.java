@@ -46,8 +46,8 @@ public interface BloodHospitalInfoMapper extends BaseMapperX<BloodHospitalInfoDO
      * 供血分布查询：不排除部队医院，支持机构属性/机构类别/医院类型/医院专业类型四维过滤
      */
     default List<BloodHospitalInfoDO> selectAllByDistributionFilters(String jiGouShuXing, String jiGouLeiBie,
-                                                                      String yiYuanLeiXing,
-                                                                      String yiYuanZhuanYeLeiXing) {
+            String yiYuanLeiXing,
+            String yiYuanZhuanYeLeiXing) {
         LambdaQueryWrapperX<BloodHospitalInfoDO> wrapper = new LambdaQueryWrapperX<>();
         wrapper.eqIfPresent(BloodHospitalInfoDO::getJiGouShuXing, jiGouShuXing);
         wrapper.eqIfPresent(BloodHospitalInfoDO::getJiGouLeiBie, jiGouLeiBie);
