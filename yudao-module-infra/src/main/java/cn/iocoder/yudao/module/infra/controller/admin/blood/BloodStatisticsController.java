@@ -41,7 +41,8 @@ public class BloodStatisticsController {
     @Operation(summary = "采血趋势统计（支持多选：自愿献血、团体无偿、全血采血量、血小板单采量）")
     public CommonResult<CollectionTrendRespVO> getWholeBloodTrend(@Valid BloodStatisticsTrendReqVO reqVO) {
         return success(bloodStatisticsService.getWholeBloodTrend(
-                reqVO.getStartTime(), reqVO.getEndTime(), reqVO.getPeriod(), reqVO.getTrendTypes()));
+                reqVO.getStartTime(), reqVO.getEndTime(), reqVO.getPeriod(),
+                reqVO.getCollectionDepartment(), reqVO.getTrendTypes()));
     }
 
     @GetMapping("/platelet-trend")

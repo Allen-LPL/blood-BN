@@ -41,6 +41,8 @@ public class BloodStatisticsServiceImpl implements BloodStatisticsService {
     private static final String TREND_TYPE_WHOLE_BLOOD = "全血采血量";
     private static final String TREND_TYPE_PLATELET = "血小板单采量";
 
+    private static final String ORG_MODE_PERSONAL = "个人无偿";
+    private static final String ORG_MODE_HOSPITAL_GROUP = "医院团体";
     private static final String ORG_MODE_VOLUNTARY_CONDITION = "organization_mode = '自愿献血'";
     private static final String ORG_MODE_GROUP_CONDITION = "organization_mode = '团体无偿'";
 
@@ -99,18 +101,17 @@ public class BloodStatisticsServiceImpl implements BloodStatisticsService {
 
     @Override
     public CollectionTrendRespVO getWholeBloodTrend(LocalDateTime startTime, LocalDateTime endTime, String period,
-            List<String> trendTypes) {
+            String collectionDepartment, List<String> trendTypes) {
         LocalDateTime[] range = normalizeTimeRange(startTime, endTime);
         String dateFormat = getDateFormatExpression(period);
+        List<String> normalizedTrendTypes = normalizeTrendTypes(trendTypes);
 
-        // 将所有选中 trendType 的条件以 OR 组合，执行单次聚合查询
-        List<String> orConditions = new ArrayList<>();
-        for (String trendType : normalizeTrendTypes(trendTypes)) {
-            orConditions.addAll(buildConditionsByTrendType(trendType));
-        }
+        List<String> bloodVolumeConditions = buildBloodVolumeConditions(normalizedTrendTypes);
+        List<String> organizationModes = buildOrganizationModesByTrendTypes(normalizedTrendTypes);
 
         CollectionTrendRespVO resp = new CollectionTrendRespVO();
-        resp.setItems(queryCollectionTrendItems(range, dateFormat, orConditions));
+        resp.setItems(queryCollectionTrendItems(range, dateFormat, collectionDepartment,
+                bloodVolumeConditions, organizationModes));
         return resp;
     }
 
@@ -118,7 +119,8 @@ public class BloodStatisticsServiceImpl implements BloodStatisticsService {
 
     @Override
     public CollectionTrendRespVO getPlateletTrend(LocalDateTime startTime, LocalDateTime endTime, String period) {
-        return getWholeBloodTrend(startTime, endTime, period, Collections.singletonList(TREND_TYPE_PLATELET));
+        return getWholeBloodTrend(startTime, endTime, period,
+                null, Collections.singletonList(TREND_TYPE_PLATELET));
     }
 
     // ==================== 4. 献血区域类型采血量 ====================
@@ -611,24 +613,26 @@ public class BloodStatisticsServiceImpl implements BloodStatisticsService {
     // ==================== 内部方法 ====================
 
     private List<CollectionTrendRespVO.Item> queryCollectionTrendItems(LocalDateTime[] range, String dateFormat,
-            List<String> orConditions) {
+            String collectionDepartment, List<String> bloodVolumeConditions, List<String> organizationModes) {
         QueryWrapperX<BloodCollectionFactDO> query = new QueryWrapperX<>();
         query.select(
                 dateFormat + " AS period",
                 "SUM(base_unit_value) AS totalUnit",
                 "COUNT(*) AS cnt");
         query.between("blood_collection_time", range[0], range[1]);
-        if (!orConditions.isEmpty()) {
+        query.eqIfPresent("collection_department", collectionDepartment);
+        if (!bloodVolumeConditions.isEmpty()) {
             query.and(w -> {
-                for (int i = 0; i < orConditions.size(); i++) {
+                for (int i = 0; i < bloodVolumeConditions.size(); i++) {
                     if (i == 0) {
-                        w.apply(orConditions.get(i));
+                        w.apply(bloodVolumeConditions.get(i));
                     } else {
-                        w.or().apply(orConditions.get(i));
+                        w.or().apply(bloodVolumeConditions.get(i));
                     }
                 }
             });
         }
+        query.inIfPresent("organization_mode", organizationModes);
         query.groupBy(dateFormat);
         query.orderByAsc("period");
 
@@ -680,6 +684,40 @@ public class BloodStatisticsServiceImpl implements BloodStatisticsService {
             return Collections.singletonList("blood_volume IS NOT NULL AND " + PLATELET_CONDITION);
         }
         return Collections.singletonList("blood_volume IS NOT NULL AND " + WHOLE_BLOOD_CONDITION);
+    }
+
+    // TODO 这里需要重新梳理逻辑，大概率是算法投入的数据源不对，改为从mysql数据库中查询聚合
+    private List<String> buildBloodVolumeConditions(List<String> trendTypes) {
+        return Collections.singletonList("blood_volume IS NOT NULL AND " + PLATELET_CONDITION);
+        // boolean containsWholeBlood = trendTypes.contains(TREND_TYPE_WHOLE_BLOOD);
+        // boolean containsPlatelet = trendTypes.contains(TREND_TYPE_PLATELET);
+        // if (containsWholeBlood && containsPlatelet) {
+        // return Collections.emptyList();
+        // }
+        // if (containsWholeBlood) {
+        // return Collections.singletonList("blood_volume IS NOT NULL AND " +
+        // WHOLE_BLOOD_CONDITION);
+        // }
+        // if (containsPlatelet) {
+        // return Collections.singletonList("blood_volume IS NOT NULL AND " +
+        // PLATELET_CONDITION);
+        // }
+        // return Collections.emptyList();
+    }
+
+    private List<String> buildOrganizationModesByTrendTypes(List<String> trendTypes) {
+        boolean containsVoluntary = trendTypes.contains(TREND_TYPE_VOLUNTARY);
+        boolean containsGroup = trendTypes.contains(TREND_TYPE_GROUP);
+        if (containsVoluntary && containsGroup) {
+            return Collections.emptyList();
+        }
+        if (containsVoluntary) {
+            return Arrays.asList(ORG_MODE_PERSONAL, TREND_TYPE_VOLUNTARY);
+        }
+        if (containsGroup) {
+            return Arrays.asList(TREND_TYPE_GROUP, ORG_MODE_HOSPITAL_GROUP);
+        }
+        return Collections.emptyList();
     }
 
     private List<String> buildBloodTypeConditions(List<String> bloodTypes) {

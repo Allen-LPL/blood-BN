@@ -16,6 +16,9 @@ public class BloodCollectionSiteCoordinateRespVO {
     @Schema(description = "血液中心列表")
     private List<MainItem> mainItems;
 
+    @Schema(description = "医院机构列表")
+    private List<HospitalItem> hospitalItems;
+
     @Schema(description = "采血点数据项")
     @Data
     public static class Item {
@@ -75,6 +78,29 @@ public class BloodCollectionSiteCoordinateRespVO {
 
         @Schema(description = "纬度")
         private BigDecimal lat;
+    }
+
+    @Schema(description = "医院机构数据项")
+    @Data
+    public static class HospitalItem {
+
+        @Schema(description = "医院全称")
+        private String yiYuanQuanCheng;
+
+        @Schema(description = "经度")
+        private BigDecimal jingDu;
+
+        @Schema(description = "纬度")
+        private BigDecimal weiDu;
+
+        @Schema(description = "医院类型")
+        private String yiYuanLeiXing;
+
+        @Schema(description = "行政区域")
+        private String xingZhengQuYu;
+
+        @Schema(description = "机构属性(公立/民营/其他)")
+        private String jiGouShuXing;
     }
 
 }

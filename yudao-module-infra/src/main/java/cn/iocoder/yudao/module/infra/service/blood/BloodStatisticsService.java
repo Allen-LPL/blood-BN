@@ -16,7 +16,7 @@ public interface BloodStatisticsService {
      * 全血采血量趋势（按日/周/月/年）
      */
     CollectionTrendRespVO getWholeBloodTrend(LocalDateTime startTime, LocalDateTime endTime, String period,
-            List<String> trendTypes);
+            String collectionDepartment, List<String> trendTypes);
 
     /**
      * 采血量情况（按日/周/月/年）

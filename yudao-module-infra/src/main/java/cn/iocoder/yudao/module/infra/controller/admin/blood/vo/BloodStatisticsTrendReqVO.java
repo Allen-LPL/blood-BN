@@ -23,4 +23,7 @@ public class BloodStatisticsTrendReqVO extends BloodStatisticsReqVO {
     @NotEmpty(message = "趋势项至少选择一个")
     private List<String> trendTypes;
 
+    @Schema(description = "血站机构（采血部门）", example = "北京市红十字血液中心")
+    private String collectionDepartment;
+
 }

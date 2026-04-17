@@ -5,7 +5,7 @@ import lombok.Data;
 
 @Schema(description = "管理后台 - 采血点坐标查询 Request VO")
 @Data
-public class BloodCollectionSiteCoordinateReqVO {
+public class BloodCollectionSiteCoordinateReqVO extends BloodStatisticsReqVO {
 
     @Schema(description = "运行机构名称（精确匹配）", example = "北京市红十字血液中心")
     private String operatingOrg;
@@ -16,4 +16,3 @@ public class BloodCollectionSiteCoordinateReqVO {
     @Schema(description = "类型（采血点类型，精确匹配）", example = "献血车")
     private String type;
 }
-

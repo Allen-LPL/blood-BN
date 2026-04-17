@@ -4,13 +4,17 @@ import cn.iocoder.yudao.framework.mybatis.core.query.LambdaQueryWrapperX;
 import cn.iocoder.yudao.module.infra.controller.admin.blood.vo.BloodCollectionSiteCoordinateRespVO;
 import cn.iocoder.yudao.module.infra.dal.dataobject.blood.BloodCollectionMainSiteDO;
 import cn.iocoder.yudao.module.infra.dal.dataobject.blood.BloodCollectionSiteDO;
+import cn.iocoder.yudao.module.infra.dal.dataobject.blood.BloodHospitalInfoDO;
 import cn.iocoder.yudao.module.infra.dal.mysql.blood.BloodCollectionMainSiteMapper;
 import cn.iocoder.yudao.module.infra.dal.mysql.blood.BloodCollectionSiteMapper;
+import cn.iocoder.yudao.module.infra.dal.mysql.blood.BloodHospitalInfoMapper;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 import org.springframework.validation.annotation.Validated;
 
 import javax.annotation.Resource;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 @Service
@@ -22,6 +26,9 @@ public class BloodCollectionSiteServiceImpl implements BloodCollectionSiteServic
 
     @Resource
     private BloodCollectionMainSiteMapper bloodCollectionMainSiteMapper;
+
+    @Resource
+    private BloodHospitalInfoMapper bloodHospitalInfoMapper;
 
     @Override
     public BloodCollectionSiteCoordinateRespVO getActiveCollectionSiteCoordinates(String operatingOrg, String district,
@@ -56,6 +63,7 @@ public class BloodCollectionSiteServiceImpl implements BloodCollectionSiteServic
         BloodCollectionSiteCoordinateRespVO resp = new BloodCollectionSiteCoordinateRespVO();
         resp.setItems(items);
         resp.setMainItems(getActiveMainSiteBaseItems(operatingOrg, district));
+        resp.setHospitalItems(getHospitalItems(district));
         return resp;
     }
 
@@ -79,6 +87,23 @@ public class BloodCollectionSiteServiceImpl implements BloodCollectionSiteServic
             mainItems.add(item);
         }
         return mainItems;
+    }
+
+    private List<BloodCollectionSiteCoordinateRespVO.HospitalItem> getHospitalItems(String district) {
+        List<BloodHospitalInfoDO> hospitals = bloodHospitalInfoMapper.selectNonMilitaryHospitalsByDistricts(
+                StringUtils.hasText(district) ? Collections.singletonList(district) : null);
+        List<BloodCollectionSiteCoordinateRespVO.HospitalItem> hospitalItems = new ArrayList<>();
+        for (BloodHospitalInfoDO hospital : hospitals) {
+            BloodCollectionSiteCoordinateRespVO.HospitalItem item = new BloodCollectionSiteCoordinateRespVO.HospitalItem();
+            item.setYiYuanQuanCheng(hospital.getYiYuanQuanCheng());
+            item.setJingDu(hospital.getJingDu());
+            item.setWeiDu(hospital.getWeiDu());
+            item.setYiYuanLeiXing(hospital.getYiYuanLeiXing());
+            item.setXingZhengQuYu(hospital.getXingZhengQuYu());
+            item.setJiGouShuXing(hospital.getJiGouShuXing());
+            hospitalItems.add(item);
+        }
+        return hospitalItems;
     }
 
 }
